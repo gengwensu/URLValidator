@@ -13,7 +13,7 @@ The urlValidator will run on http://localhost:8081 and will support the followin
     returns a JSON string of "clean" or "{malware type}" - "malware" only initially
 
     example: (malwareList = {"test1.com", "196.132.1.1"})
- 
+
 
     ```
     $ curl http://localhost:8081/urlVal/malwareType?url="test1.com:8000/this/is/a/test"
@@ -30,5 +30,6 @@ the server should respond with 404 to all other requests not listed above
  require Go
  
  $ go build ../src/github.com/gengwensu/URLValidator/urlVal.go
- ./urlVal &
+
+ $./urlVal &
 
