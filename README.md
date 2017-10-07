@@ -14,12 +14,14 @@ The urlValidator will run on http://localhost:8081 and will support the followin
 
     example: (malwareList = {"test1.com", "196.132.1.1"})
     =======
+
     ```
     $ curl http://localhost:8081/urlVal/malwareType?url="test1.com:8000/this/is/a/test"
     {"hostname":"test1.com","type":"malware"}
 
     $ curl http://localhost:8081/urlVal/malwareType?url="test2.com:8000/this/is/a/test"
     {"hostname":"test2.com","type":"clean"}
+    
     ```
  
 the server should respond with 404 to all other requests not listed above
