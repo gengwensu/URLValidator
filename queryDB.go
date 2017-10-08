@@ -21,6 +21,7 @@ func (ds *AppContext) QueryDB(hname string) string {
 		}
 		if len(ds.MalMap) < MAXCACHEENTRY {
 			ds.MalMap[hname] = mType // adding to cache
+			ds.CacheCount[hname] = 1
 			fmt.Printf("Adding %s to cache.\n", ds.MalMap[hname])
 		} else { // no more cache entries, replace the least used one
 			var minKey string
