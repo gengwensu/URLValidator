@@ -27,9 +27,23 @@ The urlValidator will run on http://localhost:8081 and will support the followin
 the server should respond with 404 to all other requests not listed above
  
  # environment & build
- require Go
+ require Go and mySql
+ dbinit.sql should be run after the installation of mysql to set up the db environment
  
- $ go build ../src/github.com/gengwensu/URLValidator/urlVal.go
+$ go build ../src/github.com/gengwensu/URLValidator/urlVal.go ../src/github.com/gengwensu/URLValidato r/queryDB.go
 
- $./urlVal &
+$./urlVal &
+...
 
+# Unit test
+require sqlmock; to install
+$ go get gopkg.in/DATA-DOG/go-sqlmock.v1
+
+$ go test                                                     
+Replacing cache entry test9.com cache count 1 with test2.com. 
+Replacing cache entry test9.com cache count 1 with test6.com. 
+PASS                                                          
+ok      github.com/gengwensu/URLValidator       0.043s        
+
+# Implementation
+A cache with MAXCACHEENTRY entries are added to improve the performance. urlVal will check the cache before querying the malware table in the database. If the request hostname is not in the cache, the result will be cached when there're still spaces in the cache. Otherwise, the least used entry will be replaced with the result.

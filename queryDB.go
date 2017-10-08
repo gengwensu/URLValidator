@@ -15,7 +15,8 @@ func (ds *AppContext) QueryDB(hname string) string {
 		mType = t
 		ds.CacheCount[hname]++
 	} else { // not in cache search db
-		err := ds.DbHandler.QueryRow("SELECT type FROM malware WHERE hostname = ?", hname).Scan(&mType)
+		err := ds.DbHandler.QueryRow("SELECT type FROM malware WHERE hostname = ?", hname).
+			Scan(&mType)
 		if err != nil { // not in db either
 			mType = "clean"
 		}
