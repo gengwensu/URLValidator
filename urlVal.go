@@ -12,14 +12,22 @@ import (
 	"net"
 	"net/http"
 	"strings"
+
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var malDb = []string{"test1.com", "196.132.1.1"}
 
 //AppContext contains all global variables that are shared among packages
 type AppContext struct {
-	MalMap map[string]string // map with hostname as key and malware type as value
+	MalMap     map[string]string // map with hostname as key and malware type as value
+	CacheCount map[string]int    // counts for each cache entry
+	DbHandler  *sql.DB           // db handle to mySql
 }
+
+const MAXCACHEENTRY int = 2
 
 type Response struct {
 	Hostname    string `json:"hostname"`
@@ -28,15 +36,30 @@ type Response struct {
 
 func main() {
 	aMap := map[string]string{}
-	for _, s := range malDb {
-		aMap[s] = "malware"
+	cMap := map[string]int{}
+	for i, s := range malDb {
+		if i < MAXCACHEENTRY {
+			aMap[s] = "malware"
+			cMap[s] = 1
+		}
 	}
 	//start http server
-	globalVar := AppContext{aMap}
+	dbh, err := sql.Open("mysql", "root@/maldb")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer dbh.Close()
+
+	globalVar := AppContext{
+		MalMap:     aMap,
+		DbHandler:  dbh,
+		CacheCount: cMap,
+	}
+
 	log.Fatal(http.ListenAndServe("localhost:8081", &globalVar))
 }
 
-func (db *AppContext) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (ds *AppContext) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var hostname string
 	switch req.URL.Path {
 	case "/urlVal", "/urlVal/":
@@ -62,13 +85,8 @@ func (db *AppContext) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				} else {
 					resp := &Response{}
 					//see if hostname is in the malware list
-					if _, ok := db.MalMap[hostname]; ok {
-						resp.Hostname = hostname
-						resp.MalwareType = db.MalMap[hostname]
-					} else {
-						resp.Hostname = hostname
-						resp.MalwareType = "clean"
-					}
+					resp.MalwareType = ds.QueryDB(hostname)
+					resp.Hostname = hostname
 					rout, _ := json.Marshal(resp)
 					fmt.Fprintf(w, string(rout))
 				}
